@@ -6,9 +6,9 @@ from flask import Flask, request, render_template_string
 app = Flask(__name__)
 
 # --------------------------------------------------------------------------
-# Model Initialization
+# Model Initialization (Updated Filename)
 # --------------------------------------------------------------------------
-MODEL_PATH = os.path.join(os.path.dirname(__file__), 'vaive_model.pkl')
+MODEL_PATH = os.path.join(os.path.dirname(__file__), 'Naive_model (1).pkl')
 model = None
 
 try:
@@ -297,11 +297,11 @@ def dashboard():
     
     if request.method == 'POST':
         if model is None:
-            error_text = "The binary GaussianNB pipeline file 'vaive_model.pkl' could not be instantiated on the server ecosystem."
+            error_text = "The binary GaussianNB pipeline file 'Naive_model (1).pkl' could not be instantiated on the server ecosystem."
             return render_template_string(HTML_TEMPLATE, error_text=error_text)
             
         try:
-            # Safely fetch parameter matrices matching ['Gender', 'Age', 'EstimatedSalary']
+            # Safely fetch parameters matching ['Gender', 'Age', 'EstimatedSalary']
             gender = float(request.form['gender'])
             age = float(request.form['age'])
             salary = float(request.form['salary'])
@@ -326,6 +326,5 @@ def dashboard():
     return render_template_string(HTML_TEMPLATE, prediction_text=prediction_text, error_text=error_text)
 
 if __name__ == '__main__':
-    # Render binds dynamically using environment configurations
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
