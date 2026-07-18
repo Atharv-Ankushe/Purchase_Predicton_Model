@@ -12,14 +12,14 @@ except FileNotFoundError:
     model = None
     print("Warning: vaive_model.pkl not found. Please place it in the same directory.")
 
-# Advanced Dashboard Template
+# Premium Dashboard Template with custom inputs for Gender, Age, and Salary
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analytics & Prediction Dashboard</title>
+    <title>Demographic Prediction Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -63,7 +63,7 @@ HTML_TEMPLATE = """
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--panel-border);
-            max-width: 640px;
+            max-width: 600px;
             width: 100%;
             border-radius: 24px;
             padding: 3rem;
@@ -141,6 +141,21 @@ HTML_TEMPLATE = """
             color: var(--text-primary);
             font-size: 0.95rem;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        select.input-field {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.2rem;
+            padding-right: 2.5rem;
+        }
+        
+        select.input-field option {
+            background: #1e1b4b;
+            color: #fff;
         }
 
         .input-field:focus {
@@ -226,42 +241,46 @@ HTML_TEMPLATE = """
 
 <div class="dashboard-card">
     <div class="brand-header">
-        <div class="brand-badge">ML Inference Engine</div>
-        <h1>Predictive Intelligence</h1>
-        <p>Supply telemetry metrics to run operational analysis.</p>
+        <div class="brand-badge">Target Audience Inference</div>
+        <h1>Predictive Analytics</h1>
+        <p>Provide user profiling attributes to evaluate model outcome.</p>
     </div>
 
     <form method="POST" action="/">
         <div class="input-grid">
             <div class="input-wrapper">
-                <label for="feature1">Operational Metric A</label>
-                <input type="number" step="any" name="feature1" id="feature1" class="input-field" required placeholder="0.00">
+                <label for="gender">Gender</label>
+                <select name="gender" id="gender" class="input-field" required>
+                    <option value="" disabled selected>Select Gender</option>
+                    <option value="1">Male</option>
+                    <option value="0">Female</option>
+                </select>
             </div>
             
             <div class="input-wrapper">
-                <label for="feature2">Operational Metric B</label>
-                <input type="number" step="any" name="feature2" id="feature2" class="input-field" required placeholder="0.00">
+                <label for="age">Age</label>
+                <input type="number" min="0" max="120" name="age" id="age" class="input-field" required placeholder="e.g. 28">
             </div>
 
             <div class="input-wrapper full-width-field">
-                <label for="feature3">System Performance Constant</label>
-                <input type="number" step="any" name="feature3" id="feature3" class="input-field" required placeholder="0.00">
+                <label for="salary">Estimated Annual Salary ($)</label>
+                <input type="number" min="0" step="any" name="salary" id="salary" class="input-field" required placeholder="e.g. 75000">
             </div>
         </div>
 
-        <button type="submit" class="action-btn">Execute Model Evaluation</button>
+        <button type="submit" class="action-btn">Calculate Prediction</button>
     </form>
 
     {% if prediction_text %}
     <div class="output-panel output-success">
-        <span>Inference Output</span>
+        <span>Model Output Label</span>
         <div class="output-value">{{ prediction_text }}</div>
     </div>
     {% endif %}
 
     {% if error_text %}
     <div class="output-panel output-error">
-        <strong>System Error:</strong> {{ error_text }}
+        <strong>Backend Error:</strong> {{ error_text }}
     </div>
     {% endif %}
 </div>
@@ -282,18 +301,27 @@ def home():
             
         try:
             # Parse form fields safely
-            f1 = float(request.form['feature1'])
-            f2 = float(request.form['feature2'])
-            f3 = float(request.form['feature3'])
+            # Note: Gender maps to 1 for Male and 0 for Female based on the option values
+            gender = float(request.form['gender'])
+            age = float(request.form['age'])
+            salary = float(request.form['salary'])
             
-            # Structuring shape matching the model properties
-            input_data = np.array([[f1, f2, f3]])
+            # Structuring shape matching your model properties: [Gender, Age, EstimatedSalary]
+            input_data = np.array([[gender, age, salary]])
             
             prediction = model.predict(input_data)
-            prediction_text = str(prediction[0])
+            
+            # Optional refinement: If your model returns a 0 or 1 classification (e.g., Purchased vs Not Purchased)
+            # you can translate it here:
+            if str(prediction[0]) == "1":
+                prediction_text = "Positive / Success (1)"
+            elif str(prediction[0]) == "0":
+                prediction_text = "Negative / Normal (0)"
+            else:
+                prediction_text = str(prediction[0])
             
         except Exception as e:
-            error_text = f"Invalid payload structure or computational error: {str(e)}"
+            error_text = f"Invalid data payload or computational parsing error: {str(e)}"
 
     return render_template_string(HTML_TEMPLATE, prediction_text=prediction_text, error_text=error_text)
 
